@@ -1,0 +1,12 @@
+name = "Redshift"
+uuid = "78485728-d298-49d1-97e6-8b65b5d75ce0"
+authors = ["Fabian Gittins"]
+version = "0.1.0"
+
+[deps]
+DelimitedFiles = "8bb1440f-4735-579b-a4ab-409b98df4dab"
+Interpolations = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
+OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
+RelMod = "fea32bdf-4b81-4c14-9f42-fb6edea45a8b"
+SimpleNonlinearSolve = "727e6d20-b764-4bd8-a329-72de5adea6c7"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"

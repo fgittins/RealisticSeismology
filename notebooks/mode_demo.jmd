@@ -1,0 +1,175 @@
+---
+title: A demonstration of using RelMod
+author: Fabian Gittins
+date: 30 Apr. 2024
+weave_options:
+    fig_path: "plots"
+    fig_ext: ".pdf"
+---
+
+
+# Introduction
+
+
+In this notebook, I will demonstrate how one uses the `RelMod` package included
+in this project. First, I import `RelMod`
+
+```julia
+using RelMod
+```
+
+and `PythonPlot` for the figures, with some light customisation
+
+```julia
+using PythonPlot
+
+PythonPlot.rc("text"; usetex=true)
+PythonPlot.rc("font"; family="serif", size=16);
+```
+
+
+# The background star
+
+
+With the preamble out of the way, I will now generate the background star.
+`RelMod` offers some very basic matter models. I use an "energy-density"
+polytrope, where
+
+$$
+p(\varepsilon) = K \varepsilon^{1 + 1/n}
+$$
+
+and choose $n = 1$, $K = 100 \ \mathrm{km}^2$,
+
+```julia
+n, K = 1, 100;
+```
+
+For the stratification, I use the simple model $\Gamma_1 / \Gamma = 1.1$,
+
+```julia
+frac = 1.1;
+```
+
+Thus, the equation of state is initialised as
+
+```julia
+eos = StratifiedEnergyPolytrope(n, K, frac);
+```
+
+Then the stellar model is generated like so
+
+```julia
+pc = 5.52e-3
+
+star = Star(eos, pc)
+println("M = $(star.M) km, R = $(star.R) km")
+```
+
+This is a highly relativistic model with compactness
+
+```julia
+C = star.M / star.R
+println("C = $C")
+```
+
+
+# An oscillation mode
+
+
+I will focus on quadrupole oscillation modes, so
+
+```julia
+l = 2;
+```
+
+and for the initial guess of the frequency I set
+
+```julia
+ωguess = (3e-2 + 1e-13*im)/star.M;
+```
+
+An oscillation mode is a solution to an eigenvalue problem. Here, I will use
+the `Simplex` (Nelder-Mead) algorithm to obtain the eigenfrequency $\omega$,
+
+```julia
+@time ω = solve_eigenfrequency(star, l, ωguess, Simplex())
+println("ω M = $(ω*star.M)")
+```
+
+To identify the class of the oscillation mode, it is useful to examine the
+eigenfunctions. One can generate the solutions with
+
+```julia
+x, sol1, sol2, sol3, sol4, sol5 = RelMod.integrate_interior(
+        star, l, ω^2; save_everystep=true);
+```
+
+and plot (the real part of) the radial eigenfunction $W(r)$,
+
+```julia
+W(r) = (r ≤ star.R/2
+        ? x[1]*sol1(r, idxs=3) + x[2]*sol2(r, idxs=3)
+        : x[3]*sol3(r, idxs=3) + x[4]*sol4(r, idxs=3) + x[5]*sol5(r, idxs=3))
+rs = LinRange(1e-3, star.R, 100)
+ReWs = [real(W(r)) for r ∈ rs]
+
+fig1, ax1 = subplots()
+ax1.plot(rs, ReWs)
+ax1.set_xlabel(L"$r$ / km")
+ax1.set_ylabel(L"$\mathrm{Re}[W(r)]$ / km$^2$")
+fig1.tight_layout()
+display(fig1)
+```
+
+This particular solution can be identified as the *g*-mode with the second
+highest frequency, or the *g$_2$*-mode.
+
+
+# Exploring the oscillation spectrum
+
+
+Finally, I will show how one can visualise the oscillation spectrum. I generate
+a range of frequencies
+
+```julia
+ωrange = LinRange(0.01, 0.5, 981)./star.M;
+```
+
+and compute the spectrum as
+
+```julia
+f(ω) = RelMod.spectrum(star, l, ω)
+@time frange = f.(ωrange)
+
+fig2, ax2 = subplots()
+ax2.plot(ωrange.*star.M, log10.(abs.(frange)))
+ax2.axvline(real(ω)*star.M;
+            alpha=0.5, color="tab:orange", linestyle="--", linewidth=1)
+ax2.set_xlabel(L"\omega M")
+ax2.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+fig2.tight_layout()
+display(fig2)
+```
+
+Here, I have indicated where the *g$_2$*-mode sits. Above its frequency, we can
+see the *g$_1$*-mode and then the *f*-mode with the largest *spike*. Above the
+*f*-mode frequency lie the first two *p*-modes.
+
+For completeness, I show the low-frequency spectrum with
+
+```julia
+ωrange = LinRange(0.01, 0.05, 4001)./star.M
+@time frange = f.(ωrange)
+
+fig3, ax3 = subplots()
+ax3.plot(ωrange.*star.M, log10.(abs.(frange)))
+ax3.axvline(real(ω)*star.M;
+            alpha=0.5, color="tab:orange", linestyle="--", linewidth=1)
+ax3.set_xlabel(L"\omega M")
+ax3.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+fig3.tight_layout()
+display(fig3)
+```
+
+With this figure, we can see the first few *g*-modes.

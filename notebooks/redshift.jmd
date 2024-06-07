@@ -1,0 +1,153 @@
+---
+title: Redshift - Uniform redshifted temperature
+author: Fabian Gittins
+date: 26 Apr. 2024
+weave_options:
+    fig_path: "plots"
+    fig_ext: ".pdf"
+---
+
+
+# Introduction
+
+
+Start with the preamble. For uniform redshifted temperature, we created another
+package `Redshift`. We import the necessary packages, with some customisation
+options for the figures
+
+```julia
+using PythonPlot
+using Redshift
+
+PythonPlot.rc("text"; usetex=true)
+PythonPlot.rc("font"; family="serif", size=16);
+```
+
+We use the following script to hold useful constants and conversion factors:
+
+```julia
+include("../src/units.jl");
+```
+
+
+# The background star
+
+
+We form a background star of baryonic mass $M_\mathrm{b} = 1.4 M_\odot$,
+
+```julia
+Mb = 1.4/mass_geometric_to_Msol;
+```
+
+with the `APR` equation of state,
+
+```julia
+eos = APR();
+```
+
+and constant redshifted temperature of $T e^{\nu / 2} = 0.02 \ \mathrm{MeV}$,
+
+```julia
+Tᵣ = 0.02;
+```
+
+Thus, we have
+
+```julia
+star = calculate_star(eos, Tᵣ, Mb)
+println("M = $(star.M*mass_geometric_to_Msol) Msol, R = $(star.R) km")
+```
+
+
+# The *f*-mode
+
+
+We find the *f*-mode with
+
+```julia
+l = 2
+ωguess = (0.075 + 2.9e-5*im)/star.M
+
+ω = solve_eigenfrequency(star, l, ωguess, Simplex())
+println("ω M = $(ω*star.M)")
+println("Re(ω) / (2π) = $(real(ω)/(2*π)/time_geometric_to_CGS) Hz")
+
+x, sol1, sol2, sol3, sol4, sol5 = Redshift.integrate_interior(
+        star, l, ω^2; save_everystep=true)
+W(r) = (r ≤ star.R/2
+        ? x[1]*sol1(r, idxs=3) + x[2]*sol2(r, idxs=3)
+        : x[3]*sol3(r, idxs=3) + x[4]*sol4(r, idxs=3) + x[5]*sol5(r, idxs=3))
+rs = LinRange(1e-3, star.R, 200)
+ReWs = [real(W(r)) for r ∈ rs]
+
+fig1, ax1 = subplots()
+ax1.plot(rs, ReWs)
+ax1.set_xlabel(L"$r$ / km")
+ax1.set_ylabel(L"$\mathrm{Re}[W(r)]$ / km$^2$")
+fig1.tight_layout()
+display(fig1)
+```
+
+
+# The oscillation spectrum
+
+
+Next, we visualise the mode spectrum with
+
+```julia
+ωrange = LinRange(0.01, 0.5, 981)./star.M
+f(ω) = Redshift.spectrum(star, l, ω)
+frange = f.(ωrange)
+
+fig2, ax2 = subplots()
+ax2.plot(ωrange.*star.M, log10.(abs.(frange)))
+ax2.axvline(real(ω)*star.M;
+            alpha=0.5, color="tab:orange", linestyle="--", linewidth=1)
+ax2.set_xlabel(L"\omega M")
+ax2.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+
+geo2kHz(ωM; M=star.M) = ωM/(2*π*time_geometric_to_CGS)/M/1e3
+kHz2geo(f; M=star.M) = 2*π*time_geometric_to_CGS*M*1e3*f
+
+secax2 = ax2.secondary_xaxis("top"; functions=(geo2kHz, kHz2geo))
+secax2.set_xlabel(L"$\omega / (2 \pi)$ / kHz")
+fig2.tight_layout()
+display(fig2)
+```
+
+We also look at the low-frequency section in detail using
+
+```julia
+ωrange = LinRange(0.001, 0.025, 2401)./star.M
+frange = f.(ωrange)
+
+fig3, ax3 = subplots()
+ax3.plot(ωrange.*star.M, log10.(abs.(frange)))
+ax3.set_xlabel(L"\omega M")
+ax3.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+
+geo2Hz(ωM; M=star.M) = ωM/(2*π*time_geometric_to_CGS)/M
+Hz2geo(f; M=star.M) = 2*π*time_geometric_to_CGS*M*f
+
+secax3 = ax3.secondary_xaxis("top"; functions=(geo2Hz, Hz2geo))
+secax3.set_xlabel(L"$\omega / (2 \pi)$ / Hz")
+fig3.tight_layout()
+display(fig3)
+```
+
+and
+
+```julia
+ωrange = LinRange(0.0006, 0.006, 2701)./star.M
+frange = f.(ωrange)
+
+fig4, ax4 = subplots()
+ax4.plot(ωrange.*star.M, log10.(abs.(frange)))
+ax4.set_xlabel(L"\omega M")
+ax4.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+
+secax4 = ax4.secondary_xaxis("top"; functions=(geo2Hz, Hz2geo))
+secax4.set_xlabel(L"$\omega / (2 \pi)$ / Hz")
+fig4.tight_layout()
+display(fig4)
+```

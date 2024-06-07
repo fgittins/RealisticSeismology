@@ -1,0 +1,13 @@
+/plots
+/research
+
+/data/eos/*
+
+.CondaPkg
+.DS_Store
+
+*.html
+*.pdf
+*.txt
+
+!/data/eos/*.table

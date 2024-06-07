@@ -1,0 +1,394 @@
+---
+title: A cold neutron star
+author: Fabian Gittins
+date: 30 Apr. 2024
+weave_options:
+    fig_path: "plots"
+    fig_ext: ".pdf"
+---
+
+
+# Introduction
+
+
+Start with the preamble. We import the necessary packages, with some
+customisation options for the figures
+
+```julia
+using PythonPlot
+using RelMod
+
+PythonPlot.rc("text"; usetex=true)
+PythonPlot.rc("font"; family="serif", size=16);
+```
+
+We require the following `src` scripts: `eos.jl` contains the equation-of-state
+implementation, `baryon_mass.jl` and `love.jl` hold functions to calculate the
+star's baryonic mass and Love number, respectively, and `units.jl` stores
+physical constants and conversion factors.
+
+```julia
+include("../src/eos.jl")
+include("../src/baryon_mass.jl")
+include("../src/love.jl")
+include("../src/units.jl");
+```
+
+We will use the APR nuclear-matter equation of state. We need to supply the
+relevant functions -- the energy density `ε`, background index `Γ` and
+adiabatic index `Γ₁` -- to `RelMod`. So
+
+```julia
+function RelMod.ε(eos::EOS, p)
+    pnatural = pressure_geometric_to_natural*p
+    if pnatural ≠ eos.p
+        eos.p = pnatural
+        eos.nb = nb(eos, pnatural)
+    end
+    εnatural = exp(eos.itp₂(log(eos.T), log(eos.nb)))
+    εnatural/pressure_geometric_to_natural
+end
+
+function RelMod.Γ(eos::EOS, p)
+    pnatural = pressure_geometric_to_natural*p
+    if pnatural ≠ eos.p
+        eos.p = pnatural
+        eos.nb = nb(eos, pnatural)
+    end
+    εnatural = exp(eos.itp₂(log(eos.T), log(eos.nb)))
+
+    ∂Yₑ_∂logT, ∂Yₑ_∂lognb = gradient(eos.itp₄, log(eos.T), log(eos.nb))
+
+    ∂logp_∂lognb = eos.itp₆(log(eos.T), log(eos.nb))
+    ∂logp_∂Yₑ = eos.itp₇(log(eos.T), log(eos.nb))
+    dlogp_dlognb = ∂logp_∂lognb + ∂logp_∂Yₑ*∂Yₑ_∂lognb
+
+    ∂logε_∂lognb = eos.itp₉(log(eos.T), log(eos.nb))
+    ∂logε_∂Yₑ = eos.itp₁₀(log(eos.T), log(eos.nb))
+    dlogε_dlognb = ∂logε_∂lognb + ∂logε_∂Yₑ*∂Yₑ_∂lognb
+
+    (εnatural + eos.p)/εnatural*dlogp_dlognb/dlogε_dlognb
+end
+
+function RelMod.Γ₁(eos::EOS, p)
+    pnatural = pressure_geometric_to_natural*p
+    if pnatural ≠ eos.p
+        eos.p = pnatural
+        eos.nb = nb(eos, pnatural)
+    end
+    eos.itp₃(log(eos.T), log(eos.nb))
+end
+```
+
+
+# The background star
+
+
+Now, we generate the equilibrium stellar model. We will assume that the star is
+cold, such that $T = 0.02 \, \mathrm{MeV}$,
+
+```julia
+T = 0.02;
+```
+
+and has baryonic mass $M_\mathrm{b} = 1.4 M_\odot$,
+
+```julia
+Mb = 1.4/mass_geometric_to_Msol;
+```
+
+We can then create the star using the `APR` equation of state,
+
+```julia
+eos = APR(T)
+pf = exp(eos.itp₁(log(eos.T), eos.ymin))/pressure_geometric_to_natural
+
+star = calculate_star(eos, Mb, pf)
+println("M = $(star.M*mass_geometric_to_Msol) Msol, R = $(star.R) km")
+```
+
+It is useful to record the (quadrupolar) tidal Love number $k_2$,
+
+```julia
+k₂ = calculate_love_number(star)
+println("k₂ = $k₂")
+```
+
+This is often expressed as the (dimensionless) tidal deformability $\Lambda$,
+
+```julia
+C = star.M / star.R
+Λ = 2*k₂/(3*C^5)
+println("Λ = $Λ")
+```
+
+
+# The *f*-mode
+
+
+Next, we compute the fundamental *f*-mode eigenfrequency $\omega$,
+
+```julia
+l = 2
+ωguess = (0.075 + 2.9e-5*im)/star.M
+
+ω₁ = solve_eigenfrequency(star, l, ωguess, Simplex())
+println("ω₁ M = $(ω₁*star.M)")
+println("Re(ω₁) / (2π) = $(real(ω₁)/(2*π)/time_geometric_to_CGS) Hz")
+```
+
+The radial eigenfunction $W(r)$ looks like
+
+```julia
+x, sol1, sol2, sol3, sol4, sol5 = RelMod.integrate_interior(
+        star, l, ω₁^2; save_everystep=true)
+W(r) = (r ≤ star.R/2
+        ? x[1]*sol1(r, idxs=3) + x[2]*sol2(r, idxs=3)
+        : x[3]*sol3(r, idxs=3) + x[4]*sol4(r, idxs=3) + x[5]*sol5(r, idxs=3))
+rs = @views star.sol.t[2:end]
+ReWs = [real(W(r)) for r ∈ rs]
+
+fig1, ax1 = subplots()
+ax1.plot(rs, ReWs)
+ax1.set_xlabel(L"$r$ / km")
+ax1.set_ylabel(L"$\mathrm{Re}[W(r)]$ / km$^2$")
+fig1.tight_layout()
+display(fig1)
+```
+
+
+# The oscillation spectrum
+
+
+To find other modes, it is useful to visualise the mode spectrum. Start with
+the high-frequency portion,
+
+```julia
+ωrange = LinRange(0.01, 0.5, 981)./star.M
+f(ω) = RelMod.spectrum(star, l, ω)
+frange = f.(ωrange)
+
+fig2, ax2 = subplots()
+ax2.plot(ωrange.*star.M, log10.(abs.(frange)))
+ax2.set_xlabel(L"\omega M")
+ax2.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+
+geo2kHz(ωM; M=star.M) = ωM/(2*π*time_geometric_to_CGS)/M/1e3
+kHz2geo(f; M=star.M) = 2*π*time_geometric_to_CGS*M*1e3*f
+
+secax2 = ax2.secondary_xaxis("top"; functions=(geo2kHz, kHz2geo))
+secax2.set_xlabel(L"$\omega / (2 \pi)$ / kHz")
+fig2.tight_layout()
+display(fig2)
+```
+
+Next, we examine the low frequencies,
+
+```julia
+ωrange = LinRange(0.001, 0.025, 2401)./star.M
+frange = f.(ωrange)
+
+fig3, ax3 = subplots()
+ax3.plot(ωrange.*star.M, log10.(abs.(frange)))
+ax3.set_xlabel(L"\omega M")
+ax3.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+
+geo2Hz(ωM; M=star.M) = ωM/(2*π*time_geometric_to_CGS)/M
+Hz2geo(f; M=star.M) = 2*π*time_geometric_to_CGS*M*f
+
+secax3 = ax3.secondary_xaxis("top"; functions=(geo2Hz, Hz2geo))
+secax3.set_xlabel(L"$\omega / (2 \pi)$ / Hz")
+fig3.tight_layout()
+display(fig3)
+```
+
+
+# The *g*-modes
+
+
+From here, we can identify some of the modes. Start with
+
+```julia
+ωguess = 0.02/star.M
+
+ω₂ = solve_eigenfrequency(star, l, ωguess, Simplex())
+println("ω₂ M = $(ω₂*star.M)")
+println("ω₂ / (2π) = $(ω₂/(2*π)/time_geometric_to_CGS) Hz")
+
+x, sol1, sol2, sol3, sol4, sol5 = RelMod.integrate_interior(
+        star, l, ω₂^2; save_everystep=true)
+ReWs = [real(W(r)) for r ∈ rs]
+
+fig4, ax4 = subplots()
+ax4.plot(rs, ReWs)
+ax4.set_xlabel(L"$r$ / km")
+ax4.set_ylabel(L"$\mathrm{Re}[W(r)]$ / km$^2$")
+fig4.tight_layout()
+display(fig4)
+```
+
+This is the first *g*-mode (also denoted as the *g*$_1$-mode). Its sharp
+feature comes from the presence of an interface in the equation of state. We
+see this by looking at the energy-density profile in the star,
+
+```julia
+ps = @views star.sol[2, 2:end]
+
+ε(p) = RelMod.ε(eos, p)
+εs = ε.(ps)
+
+fig5, ax5 = subplots()
+ax5.plot(log10.(1 .- rs./star.R), log10.(εs.*pressure_geometric_to_natural))
+ax5.axvline(log10(1 - rs[26]/star.R);
+            alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
+ax5.axvline(log10(1 - rs[101]/star.R);
+            alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
+ax5.set_xlabel(L"\log_{10}(1 - r / R)")
+ax5.set_ylabel(L"$\log_{10}[\varepsilon(r)$ / MeV fm$^{-3}]$")
+fig5.tight_layout()
+display(fig5)
+```
+
+and comparing it with the eigenfunction,
+
+```julia
+fig6, ax6 = subplots()
+ax6.plot(log10.(1 .- rs./star.R), ReWs)
+ax6.axvline(log10(1 - rs[26]/star.R);
+            alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
+ax6.axvline(log10(1 - rs[101]/star.R);
+            alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
+ax6.set_xlabel(L"\log_{10}(1 - r / R)")
+ax6.set_ylabel(L"$\mathrm{Re}[W(r)]$ / km$^2$")
+fig6.tight_layout()
+display(fig6)
+```
+
+We can see that the density discontinuity is associated with the sharp *kink*
+in the *g*$_1$-mode.
+
+It is also informative to study the indices $\Gamma$ and $\Gamma_1$,
+
+```julia
+Γ(p) = RelMod.Γ(eos, p)
+Γ₁(p) = RelMod.Γ₁(eos, p)
+Γs = Γ.(ps)
+Γ₁s = Γ₁.(ps)
+
+fig7, ax7 = subplots()
+ax7.plot(log10.(1 .- rs./star.R), Γs; label=L"\Gamma")
+ax7.plot(log10.(1 .- rs./star.R), Γ₁s; linestyle=":", label=L"\Gamma_1")
+ax7.legend()
+ax7.axvline(log10(1 - rs[26]/star.R);
+            alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
+ax7.axvline(log10(1 - rs[101]/star.R);
+            alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
+ax7.set_xlabel(L"\log_{10}(1 - r / R)")
+fig7.tight_layout()
+display(fig7)
+```
+
+We now look at the next mode solution,
+
+```julia
+ωguess = 0.011/star.M
+
+ω₃ = solve_eigenfrequency(star, l, ωguess, Simplex())
+println("ω₃ M = $(ω₃*star.M)")
+println("ω₃ / (2π) = $(ω₃/(2*π)/time_geometric_to_CGS) Hz")
+
+x, sol1, sol2, sol3, sol4, sol5 = RelMod.integrate_interior(
+        star, l, ω₃^2; save_everystep=true)
+ReWs = [real(W(r)) for r ∈ rs]
+
+fig8, ax8 = subplots()
+ax8.plot(log10.(1 .- rs./star.R), ReWs)
+ax8.axvline(log10(1 - rs[26]/star.R);
+            alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
+ax8.axvline(log10(1 - rs[101]/star.R);
+            alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
+ax8.set_xlabel(L"\log_{10}(1 - r / R)")
+ax8.set_ylabel(L"$\mathrm{Re}[W(r)]$ / km$^2$")
+fig8.tight_layout()
+display(fig8)
+```
+
+We will call this the *g$_2$*-mode.
+
+The remaining *g*-modes can be found by studying the lower frequencies,
+
+```julia
+ωrange = LinRange(0.0006, 0.006, 2701)./star.M
+frange = f.(ωrange)
+
+fig9, ax9 = subplots()
+ax9.plot(ωrange.*star.M, log10.(abs.(frange)))
+ax9.set_xlabel(L"\omega M")
+ax9.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+
+secax9 = ax9.secondary_xaxis("top"; functions=(geo2Hz, Hz2geo))
+secax9.set_xlabel(L"$\omega / (2 \pi)$ / Hz")
+fig9.tight_layout()
+display(fig9)
+```
+
+We can therefore extract the *g$_3$*-mode,
+
+```julia
+ωguess = 0.005/star.M
+
+ω₄ = solve_eigenfrequency(star, l, ωguess, Simplex())
+println("ω₄ M = $(ω₄*star.M)")
+println("ω₄ / (2π) = $(ω₄/(2*π)/time_geometric_to_CGS) Hz")
+
+x, sol1, sol2, sol3, sol4, sol5 = RelMod.integrate_interior(
+        star, l, ω₄^2; save_everystep=true)
+ReWs = [real(W(r)) for r ∈ rs]
+
+fig10, ax10 = subplots()
+ax10.plot(log10.(1 .- rs./star.R), ReWs)
+ax10.axvline(log10(1 - rs[26]/star.R);
+            alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
+ax10.axvline(log10(1 - rs[101]/star.R);
+            alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
+ax10.set_xlabel(L"\log_{10}(1 - r / R)")
+ax10.set_ylabel(L"$\mathrm{Re}[W(r)]$ / km$^2$")
+fig10.tight_layout()
+display(fig10)
+```
+
+
+# Returning to the spectrum
+
+
+Let us look at the modes in the spectrum,
+
+```julia
+ax2.axvline(real(ω₁)*star.M;
+            alpha=0.5, color="tab:orange", linestyle="--", linewidth=1,
+            label="\\textit{f}-mode")
+ax2.axvline(ω₂*star.M;
+            alpha=0.5, color="tab:green", linestyle="--", linewidth=1,
+            label=L"\textit{g}$_1$-mode")
+ax2.axvline(ω₃*star.M;
+            alpha=0.5, color="tab:red", linestyle="--", linewidth=1,
+            label=L"\textit{g}$_2$-mode")
+ax2.legend()
+display(fig2)
+```
+
+Also, the low frequencies,
+
+```julia
+ax3.axvline(ω₂*star.M;
+            alpha=0.5, color="tab:green", linestyle="--", linewidth=1,
+            label=L"\textit{g}$_1$-mode")
+ax3.axvline(ω₃*star.M;
+            alpha=0.5, color="tab:red", linestyle="--", linewidth=1,
+            label=L"\textit{g}$_2$-mode")
+ax3.axvline(ω₄*star.M;
+            alpha=0.5, color="tab:purple", linestyle="--", linewidth=1,
+            label=L"\textit{g}$_3$-mode")
+ax3.legend()
+display(fig3)
+```
