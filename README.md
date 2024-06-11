@@ -40,3 +40,20 @@ General use of this software is demonstrated in the `scripts` and `notebooks` di
 using Weave
 weave("mode_demo.jmd")
 ```
+
+## Citation
+
+This software was developed to support the following article:
+
+```bibtex
+@unpublished{gittins2024neutronstar,
+        title="{Neutron-star seismology with realistic, finite-temperature nuclear matter}", 
+       author={{Gittins}, F. and {Andersson}, N.},
+         year={2024},
+       eprint={2406.05177},
+archivePrefix={arXiv},
+ primaryClass={gr-qc}
+}
+```
+
+If you found this project to be useful in academic work, please cite it using the above reference.
