@@ -15,7 +15,7 @@ Structure of relativistic star.
 - `dm_dr`
 - `dp_dr`
 - `dν_dr`
-- `RSMR`
+- `RMSR`
 
 # Constants
 - `cb`
