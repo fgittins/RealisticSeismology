@@ -1,7 +1,7 @@
 name = "RelMod"
 uuid = "fea32bdf-4b81-4c14-9f42-fb6edea45a8b"
 authors = ["Fabian Gittins"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
