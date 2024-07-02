@@ -1,6 +1,6 @@
 # RealisticSeismology
 
-This project presents an implementation of realistic, finite-temperature nuclear-matter models in neutron-star seismology.
+This project presents an implementation of realistic, finite-temperature nuclear-matter models in neutron-star seismology. It was developed to support [arXiv:2406.05177](https://arxiv.org/abs/2406.05177). 
 
 ## Installation
 
@@ -37,13 +37,14 @@ For more information on Julia packages and environments, see the [Pkg.jl documen
 General use of this software is demonstrated in the `scripts` and `notebooks` directories. The notebooks are written in Julia Markdown and may be compiled using [Weave.jl](https://weavejl.mpastell.com/stable/). For example,
 
 ```julia-repl
-using Weave
-weave("mode_demo.jmd")
+julia> using Weave
+
+julia> weave("mode_demo.jmd")
 ```
 
 ## Citation
 
-This software was developed to support the following article:
+If you found this project to be useful in academic work, please cite it using the following reference:
 
 ```bibtex
 @unpublished{gittins2024neutronstar,
@@ -55,5 +56,3 @@ archivePrefix={arXiv},
  primaryClass={gr-qc}
 }
 ```
-
-If you found this project to be useful in academic work, please cite it using the above reference.
