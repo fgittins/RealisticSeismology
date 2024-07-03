@@ -37,7 +37,7 @@ function integrate_all(background, l, ωguess)
     # exterior
     n = (l + 2)*(l - 1)/2
     sol = integrate_exterior(R, M, n, ωguess)
-    q, dqdρ = sol[end]
+    q, dqdρ = sol.u[end]
     θ = -atan(imag(ωguess)/real(ωguess))
     dqdr = exp(-im*θ)*dqdρ
     Z, dZdrstar = transformation(R, SA[H₁, K], M, n)
