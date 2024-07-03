@@ -63,7 +63,7 @@ Polytropic equation of state in terms of energy density with stratification.
 - `K`: polytropic constant [km^(2/n)].
 - `frac`: ratio of adiabatic index to background index [dimensionless].
 """
-struct StratifiedEnergyPolytrope{T₁ <: Real, T₂ <: Real, T₃<:Real}
+struct StratifiedEnergyPolytrope{T₁ <: Real, T₂ <: Real, T₃ <: Real}
     n::T₁
     K::T₂
     frac::T₃
