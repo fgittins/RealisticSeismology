@@ -1,17 +1,17 @@
 name = "RelMod"
 uuid = "fea32bdf-4b81-4c14-9f42-fb6edea45a8b"
 authors = ["Fabian Gittins"]
-version = "0.1.0"
+version = "0.1.1"
 
 [deps]
+DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
 Optim = "429524aa-4258-5aef-a3af-852621145aeb"
 OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 Roots = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
-SciMLBase = "0bca4576-84f4-4d90-8ffe-ffa030f20462"
 StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
 
 [compat]
-SciMLBase = "< 2.11.0"
+DiffEqBase = "6.151.5"
 
 [extras]
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
