@@ -7,6 +7,8 @@ and `M = 1.3 Msol`.
 
 Compares with eigenfrequencies of Table 3.3 in Ref. [2].
 
+Checks some structs and functions for type-stability.
+
 # References
 [1] Andersson, Kokkotas and Schutz, "A new numerical approach to the
     oscillation modes of relativistic stars," Mon. Not. R. Astron. Soc. 274
@@ -17,15 +19,15 @@ Compares with eigenfrequencies of Table 3.3 in Ref. [2].
 
 @testset "Muller's method" begin
     n, K = 1, 100
-    eos = EnergyPolytrope(n, K)
+    eos = @inferred EnergyPolytrope(n, K)
     pc = 5.52e-3
-    star = Star(eos, pc)
+    star = @inferred Star(eos, pc)
 
     l = 2
 
     @testset "f-mode" begin
         ωtrue = (0.171 + 6.19e-5*im)/star.M
-        ω = solve_eigenfrequency(
+        ω = @inferred solve_eigenfrequency(
                 star, l,
                 (ωtrue, 1.001*real(ωtrue) + imag(ωtrue)*im,
                  real(ωtrue) + 1.001*imag(ωtrue)*im), Muller())
@@ -168,7 +170,7 @@ end
 
     @testset "f-mode" begin
         ωtrue = (0.171 + 6.19e-5*im)/star.M
-        ω = solve_eigenfrequency(star, l, ωtrue, Simplex())
+        ω = @inferred solve_eigenfrequency(star, l, ωtrue, Simplex())
 
         @test real(ω*star.M) ≈ real(ωtrue*star.M) atol=1e-3
         @test imag(ω*star.M) ≈ imag(ωtrue*star.M) atol=1e-7
@@ -229,7 +231,7 @@ end
 
 @testset "Stratification" begin
     n, K, frac = 1, 100, 1.1
-    eos = StratifiedEnergyPolytrope(n, K, frac)
+    eos = @inferred StratifiedEnergyPolytrope(n, K, frac)
     pc = 5.52e-3
     star = Star(eos, pc)
 
