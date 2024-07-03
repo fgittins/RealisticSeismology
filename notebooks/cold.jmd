@@ -239,7 +239,7 @@ ps = @views star.sol[2, 2:end]
 
 fig5, ax5 = subplots()
 ax5.plot(log10.(1 .- rs./star.R), log10.(εs.*pressure_geometric_to_natural))
-ax5.axvline(log10(1 - rs[26]/star.R);
+ax5.axvline(log10(1 - rs[34]/star.R);
             alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
 ax5.axvline(log10(1 - rs[101]/star.R);
             alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
@@ -254,7 +254,7 @@ and comparing it with the eigenfunction,
 ```julia
 fig6, ax6 = subplots()
 ax6.plot(log10.(1 .- rs./star.R), ReWs)
-ax6.axvline(log10(1 - rs[26]/star.R);
+ax6.axvline(log10(1 - rs[34]/star.R);
             alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
 ax6.axvline(log10(1 - rs[101]/star.R);
             alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
@@ -279,7 +279,7 @@ fig7, ax7 = subplots()
 ax7.plot(log10.(1 .- rs./star.R), Γs; label=L"\Gamma")
 ax7.plot(log10.(1 .- rs./star.R), Γ₁s; linestyle=":", label=L"\Gamma_1")
 ax7.legend()
-ax7.axvline(log10(1 - rs[26]/star.R);
+ax7.axvline(log10(1 - rs[34]/star.R);
             alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
 ax7.axvline(log10(1 - rs[101]/star.R);
             alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
@@ -303,7 +303,7 @@ ReWs = [real(W(r)) for r ∈ rs]
 
 fig8, ax8 = subplots()
 ax8.plot(log10.(1 .- rs./star.R), ReWs)
-ax8.axvline(log10(1 - rs[26]/star.R);
+ax8.axvline(log10(1 - rs[34]/star.R);
             alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
 ax8.axvline(log10(1 - rs[101]/star.R);
             alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
@@ -347,7 +347,7 @@ ReWs = [real(W(r)) for r ∈ rs]
 
 fig10, ax10 = subplots()
 ax10.plot(log10.(1 .- rs./star.R), ReWs)
-ax10.axvline(log10(1 - rs[26]/star.R);
+ax10.axvline(log10(1 - rs[34]/star.R);
             alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
 ax10.axvline(log10(1 - rs[101]/star.R);
             alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)

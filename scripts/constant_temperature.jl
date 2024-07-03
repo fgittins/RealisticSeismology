@@ -74,7 +74,7 @@ ps = @views star.sol[2, 2:end]
 
 fig1, ax1 = subplots()
 ax1.plot(log10.(1 .- rs./star.R), log10.(εs.*pressure_geometric_to_natural))
-ax1.axvline(log10(1 - rs[26]/star.R);
+ax1.axvline(log10(1 - rs[34]/star.R);
             alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
 ax1.axvline(log10(1 - rs[101]/star.R);
             alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
@@ -106,7 +106,7 @@ display(fig2a)
 
 fig2b, ax2b = subplots()
 ax2b.plot(log10.(1 .- rs./star.R), ReWs)
-ax2b.axvline(log10(1 - rs[26]/star.R);
+ax2b.axvline(log10(1 - rs[34]/star.R);
              alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
 ax2b.axvline(log10(1 - rs[101]/star.R);
              alpha=0.5, color="tab:gray", linestyle="--", linewidth=1)
