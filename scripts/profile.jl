@@ -66,7 +66,7 @@ function RelMod.Γ₁(sim::Sim, p)
 end
 
 Mb = 1.4/mass_geometric_to_Msol
-eos = Sim()
+eos = APR()
 pf = exp(eos.itp₁(log(eos.itp₁₁(eos.ymin)), eos.ymin))/pressure_geometric_to_natural
 
 star = calculate_star(eos, Mb, pf)
@@ -135,16 +135,16 @@ display(fig3b)
 ωrange = LinRange(0.0008, 0.008, 3601)./star.M
 frange = f.(ωrange)
 
-fig5a, ax5a = subplots()
-ax5a.plot(ωrange.*star.M, log10.(abs.(frange)))
-ax5a.set_xlabel(L"\omega M")
-ax5a.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
-fig5a.tight_layout()
-display(fig5a)
+fig4a, ax4a = subplots()
+ax4a.plot(ωrange.*star.M, log10.(abs.(frange)))
+ax4a.set_xlabel(L"\omega M")
+ax4a.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+fig4a.tight_layout()
+display(fig4a)
 
-fig5b, ax5b = subplots()
-ax5b.plot(ωrange./(2*π*time_geometric_to_CGS), log10.(abs.(frange)))
-ax5b.set_xlabel(L"$\omega / (2 \pi)$ / Hz")
-ax5b.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
-fig5b.tight_layout()
-display(fig5b)
+fig4b, ax4b = subplots()
+ax4b.plot(ωrange./(2*π*time_geometric_to_CGS), log10.(abs.(frange)))
+ax4b.set_xlabel(L"$\omega / (2 \pi)$ / Hz")
+ax4b.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+fig4b.tight_layout()
+display(fig4b)
