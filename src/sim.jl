@@ -1,11 +1,13 @@
 """
-APR equation of state with temperature profile from simulation.
+Equation of state with temperature profile from simulation.
 
 # Structs
 - `Sim`
 
 # Functions
 - `Sim`
+- `APR`
+- `DD2`
 - `nb`
 
 # Notes
@@ -28,7 +30,7 @@ using SimpleNonlinearSolve
 
 include("read_table.jl")
 
-"APR equation of state with temperature profile from simulation."
+"Equation of state with temperature profile from simulation."
 mutable struct Sim{IntType₁, IntType₂, IntType₃, IntType₄, IntType₅, IntType₆,
                    IntType₇, IntType₈, IntType₉, IntType₁₀,
                    T₁ <: Real, T₂ <: Real,
@@ -51,12 +53,10 @@ mutable struct Sim{IntType₁, IntType₂, IntType₃, IntType₄, IntType₅, I
     const itp₁₁::IntType₁₁  # Temperature profile [MeV]
 end
 
-function Sim()
-    n, m = 132, 220
-
+function Sim(n, m, model, sim)
     (Ts, nbs), (Yₑs, ps, ss, εs, ∂p_∂Ts, ∂p_∂nbs, ∂p_∂Yₑs,
     ∂s_∂Ts, ∂s_∂nbs, ∂s_∂Yₑs, ∂ε_∂Ts, ∂ε_∂nbs, ∂ε_∂Yₑs) = read_table(
-            dirname(Base.active_project()) * "/data/eos/apr.table", n, m)
+            model, n, m)
 
     xmin = log(Ts[1])
     xmax = log(Ts[n])
@@ -111,9 +111,7 @@ function Sim()
 
     T = p = nb = 0.0
 
-    profile = readdlm(
-            dirname(Base.active_project()) * "/data/sim/frame_0045.dat";
-            comments=true)::Matrix{Float64}
+    profile = readdlm(sim; comments=true)::Matrix{Float64}
 
     xs = @view profile[:, 1]
     @. xs = xs*log(10)          # convert to natural logarithm
@@ -127,6 +125,22 @@ function Sim()
 
     Sim(itp₁, itp₂, itp₃, itp₄, itp₅, itp₆, itp₇, itp₈, itp₉, itp₁₀,
         ymin, ymax, T, p, nb, itp₁₁)
+end
+
+"APR equation of state with temperature profile from simulation."
+function APR()
+    n, m = 132, 220
+    model = dirname(Base.active_project()) * "/data/eos/apr.table"
+    sim = dirname(Base.active_project()) * "/data/sim/apr.dat"
+    Sim(n, m, model, sim)
+end
+
+"DD2 equation of state with temperature profile from simulation."
+function DD2()
+    n, m = 80, 323
+    model = dirname(Base.active_project()) * "/data/eos/dd2.table"
+    sim = dirname(Base.active_project()) * "/data/sim/dd2.dat"
+    Sim(n, m, model, sim)
 end
 
 "Baryon-number density [fm^-3] as function of pressure [MeV fm^-3]."
