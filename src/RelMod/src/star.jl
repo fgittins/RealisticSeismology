@@ -130,7 +130,7 @@ m(star, r) = star.sol(r; idxs=1)
 "Pressure [km^-2] as function of radius [km]."
 p(star, r) = star.sol(r; idxs=2)
 
-"Metric potential `ν` [dimensionless] as function of radius[km]."
+"Metric potential [dimensionless] as function of radius [km]."
 ν(star, r) = star.sol(r; idxs=3)
 
 """
