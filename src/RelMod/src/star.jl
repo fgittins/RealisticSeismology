@@ -12,10 +12,7 @@ Structure of relativistic star.
 - `m`
 - `p`
 - `ν`
-- `dm_dr`
-- `dp_dr`
-- `dν_dr`
-- `RMSR`
+- `Base.show`
 
 # Constants
 - `cb`
@@ -133,49 +130,9 @@ p(star, r) = star.sol(r; idxs=2)
 "Metric potential [dimensionless] as function of radius [km]."
 ν(star, r) = star.sol(r; idxs=3)
 
-"""
-Derivative of mass with respect to radius [dimensionless] as function of radius
-[km].
-"""
-dm_dr(star, r) = star.sol(r, Val{1}; idxs=1)
-
-"""
-Derivative of pressure with respect to radius [km^-3] as function of radius
-[km].
-"""
-dp_dr(star, r) = star.sol(r, Val{1}; idxs=2)
-
-"""
-Derivative of metric potential with respect to radius [km^-1] as function of
-radius [km].
-"""
-dν_dr(star, r) = star.sol(r, Val{1}; idxs=3)
-
-"Root-mean-square residual of numerical solution."
-function RMSR(star)
-    rs = @views star.sol.t
-    n = length(rs)
-    resid₁² = 0
-    resid₂² = 0
-    resid₃² = 0
-    for r ∈ rs
-        mᵣ = m(star, r)
-        pᵣ = p(star, r)
-        dm_drᵣ = dm_dr(star, r)
-        dp_drᵣ = dp_dr(star, r)
-        dν_drᵣ = dν_dr(star, r)
-
-        εᵣ = ε(star.eos, pᵣ)
-
-        resid₁ = (dm_drᵣ - 4*π*r^2*εᵣ)/(abs(dm_drᵣ) + abs(4*π*r^2*εᵣ))
-        resid₂ = ((dp_drᵣ + (εᵣ + pᵣ)*dν_drᵣ/2)
-                  /(abs(dp_drᵣ) + abs((εᵣ + pᵣ)*dν_drᵣ/2)))
-        resid₃ = ((dν_drᵣ - 2*(mᵣ + 4*π*r^3*pᵣ)/(r*(r - 2*mᵣ)))
-                  /(abs(dν_drᵣ) + abs(2*(mᵣ + 4*π*r^3*pᵣ)/(r*(r - 2*mᵣ)))))
-
-        resid₁² += resid₁^2
-        resid₂² += resid₂^2
-        resid₃² += resid₃^2
-    end
-    √((resid₁² + resid₂² + resid₃²)/(3*n))
+function Base.show(io::IO, ::MIME"text/plain", star::Star)
+    println(io, "Star with M = $(star.M) km, R = $(star.R) km")
+    println(io, "    pc = $(star.pc) km^-2")
+    println(io, "    νc = $(star.νc)")
+    print(io, "    εc = $(star.εc) km^-2")
 end

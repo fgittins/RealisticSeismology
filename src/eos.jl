@@ -9,6 +9,7 @@ Equation-of-state models in β equilibrium at constant temperature.
 - `APR`
 - `DD2`
 - `nb`
+- `Base.show`
 
 # Notes
 APR and DD2 models are taken from CompOSE repository, which provides data in
@@ -137,3 +138,5 @@ function nb(eos, p)
     sol = solve(prob, ITP())
     exp(sol.u)
 end
+
+Base.show(io::IO, ::MIME"text/plain", eos::EOS) = print(io, "EOS with T = $(eos.T) MeV")

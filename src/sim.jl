@@ -9,6 +9,7 @@ Equation of state with temperature profile from simulation.
 - `APR`
 - `DD2`
 - `nb`
+- `Base.show`
 
 # Notes
 Model is taken from CompOSE repository, which provides data in tabulated form.
@@ -152,3 +153,5 @@ function nb(sim, p)
     sol = solve(prob, ITP())
     exp(sol.u)
 end
+
+Base.show(io::IO, ::MIME"text/plain", sim::Sim) = print(io, "Sim with temperature profile")

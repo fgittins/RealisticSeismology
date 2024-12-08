@@ -9,6 +9,7 @@ Defines functions to calculate star with constant redshifted temperature.
 - `integrate_star`
 - `shooting`
 - `RedStar`
+- `Base.show`
 """
 
 """
@@ -127,4 +128,11 @@ function RedStar(eos, Tᵣ, pc)
 
     star = RedStar(eos, pc, νc, εc, r₀, R, M, sol, Tᵣ)
     star
+end
+
+function Base.show(io::IO, ::MIME"text/plain", star::RedStar)
+    println(io, "Star with M = $(star.M) km, R = $(star.R) km")
+    println(io, "    pc = $(star.pc) km^-2")
+    println(io, "    νc = $(star.νc)")
+    print(io, "    εc = $(star.εc) km^-2")
 end

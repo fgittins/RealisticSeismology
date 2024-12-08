@@ -10,6 +10,7 @@ Two-parameter APR equation of state.
 - `ε`
 - `Γ`
 - `Γ₁`
+- `Base.show`
 """
 
 mutable struct APR{IntType₁, IntType₂, IntType₃, IntType₄, IntType₅, IntType₆,
@@ -167,3 +168,5 @@ function Γ₁(apr, T, p)
     end
     apr.itp₃(log(apr.T), log(apr.nb))
 end
+
+Base.show(io::IO, ::MIME"text/plain", apr::APR) = print(io, "APR")
