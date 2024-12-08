@@ -6,6 +6,7 @@
 
 .CondaPkg
 .DS_Store
+.vscode
 
 *.html
 *.pdf
