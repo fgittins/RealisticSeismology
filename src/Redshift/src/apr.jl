@@ -169,4 +169,4 @@ function Γ₁(apr, T, p)
     apr.itp₃(log(apr.T), log(apr.nb))
 end
 
-Base.show(io::IO, ::MIME"text/plain", apr::APR) = print(io, "APR")
+Base.show(io::IO, apr::APR) = print(io, "APR")

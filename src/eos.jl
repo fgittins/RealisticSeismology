@@ -139,4 +139,4 @@ function nb(eos, p)
     exp(sol.u)
 end
 
-Base.show(io::IO, ::MIME"text/plain", eos::EOS) = print(io, "EOS with T = $(eos.T) MeV")
+Base.show(io::IO, eos::EOS) = print(io, "EOS with T = $(eos.T) MeV")

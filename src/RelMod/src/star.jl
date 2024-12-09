@@ -130,9 +130,12 @@ p(star, r) = star.sol(r; idxs=2)
 "Metric potential [dimensionless] as function of radius [km]."
 ν(star, r) = star.sol(r; idxs=3)
 
-function Base.show(io::IO, ::MIME"text/plain", star::Star)
-    println(io, "Star with M = $(star.M) km, R = $(star.R) km")
-    println(io, "    pc = $(star.pc) km^-2")
-    println(io, "    νc = $(star.νc)")
-    print(io, "    εc = $(star.εc) km^-2")
+Base.show(io::IO, star::Star) = print(io, "Star with eos = $(star.eos) and pc = $(star.pc) km^-2")
+
+function Base.show(io::IO, mime::MIME"text/plain", star::Star)
+    println(io, "Star with")
+    println(io, " eos = $(star.eos),")
+    println(io, " pc = $(star.pc) km^-2, νc = $(star.νc), εc = $(star.εc) km^-2,")
+    println(io, " M = $(star.M) km, R = $(star.R) km")
+    show(io, mime, star.sol)
 end

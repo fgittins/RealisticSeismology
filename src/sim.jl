@@ -154,4 +154,4 @@ function nb(sim, p)
     exp(sol.u)
 end
 
-Base.show(io::IO, ::MIME"text/plain", sim::Sim) = print(io, "Sim with temperature profile")
+Base.show(io::IO, sim::Sim) = print(io, "Sim with temperature profile from simulation")

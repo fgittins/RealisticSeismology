@@ -130,9 +130,12 @@ function RedStar(eos, Tᵣ, pc)
     star
 end
 
-function Base.show(io::IO, ::MIME"text/plain", star::RedStar)
-    println(io, "Star with M = $(star.M) km, R = $(star.R) km")
-    println(io, "    pc = $(star.pc) km^-2")
-    println(io, "    νc = $(star.νc)")
-    print(io, "    εc = $(star.εc) km^-2")
+Base.show(io::IO, redstar::RedStar) = print(io, "RedStar with eos = $(redstar.eos) and pc = $(redstar.pc) km^-2")
+
+function Base.show(io::IO, mime::MIME"text/plain", redstar::RedStar)
+    println(io, "RedStar with")
+    println(io, " eos = $(redstar.eos),")
+    println(io, " pc = $(redstar.pc) km^-2, νc = $(redstar.νc), εc = $(redstar.εc) km^-2,")
+    println(io, " M = $(redstar.M) km, R = $(redstar.R) km")
+    show(io, mime, redstar.sol)
 end
