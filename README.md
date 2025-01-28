@@ -1,6 +1,6 @@
 # RealisticSeismology
 
-This project presents an implementation of realistic, finite-temperature nuclear-matter models in neutron-star seismology. It was developed to support [arXiv:2406.05177](https://arxiv.org/abs/2406.05177) and [arXiv:2409.13468](https://arxiv.org/abs/2409.13468). 
+This project presents an implementation of realistic, finite-temperature nuclear-matter models in neutron-star seismology. It was developed to support [arXiv:2406.05177](https://arxiv.org/abs/2406.05177) and [Gittins _et al._ (Phys. Rev. D **111**, 023049, 2025)](https://doi.org/10.1103/PhysRevD.111.023049).
 
 ## Installation
 
@@ -56,10 +56,16 @@ archivePrefix={arXiv},
  primaryClass={gr-qc}
 }
 
-@unpublished{gittins2024problematicsystematics,
+@article{gittins2025problematicsystematics,
         title="{Problematic systematics in neutron-star merger simulations}", 
        author={{Gittins}, F. and {Matur}, R. and {Andersson}, N. and {Hawke}, I.},
-         year={2024},
+      journal={Phys.~Rev.~D},
+         year={2025},
+        month=jan,
+       volume={111},
+        issue={2},
+        pages={023049},
+          doi={10.1103/PhysRevD.111.023049},
        eprint={2409.13468},
 archivePrefix={arXiv},
  primaryClass={gr-qc}
