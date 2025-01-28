@@ -16,9 +16,12 @@ two-parameter tables subject to β equilibrium.
 - `ε`
 - `Yₑ`
 - `Γ₁`
+- `logT`
 - `generate_table`
+- `generate_table_entropy`
 - `make_apr_table`
 - `make_dd2_table`
+- `make_apr_table_entropy`
 
 # References
 [1] Schneider, Constantinou, Muccioli and Prakash,
@@ -69,13 +72,15 @@ end
 
 "Three-parameter equation of state."
 struct EOS{IntType₁, IntType₂, IntType₃, IntType₄,
-           S₁ <: Real, S₂ <: Real}
+           S₁ <: Real, S₂ <: Real, S₃ <: Real, S₄ <: Real}
     itp₁::IntType₁
     itp₂::IntType₂
     itp₃::IntType₃
     itp₄::IntType₄
-    Yₑmin::S₁
-    Yₑmax::S₂
+    xmin::S₁
+    xmax::S₂
+    Yₑmin::S₃
+    Yₑmax::S₄
 end
 
 "Three-parameter APR equation of state."
@@ -109,7 +114,7 @@ function APR()
     itp₄ = scale(interpolate(log.(εs[1:n, 2:m, 1:o]), BSpline(Cubic())),
                  xs, ys, zs)
 
-    EOS(itp₁, itp₂, itp₃, itp₄, zmin, zmax)
+    EOS(itp₁, itp₂, itp₃, itp₄, xmin, xmax, zmin, zmax)
 end
 
 "Three-parameter DD2 equation of state."
@@ -143,7 +148,7 @@ function DD2()
     itp₄ = scale(interpolate(log.(εs[2:n, 2:m-2, 1:o]), BSpline(Cubic())),
                  xs, ys, zs)
 
-    EOS(itp₁, itp₂, itp₃, itp₄, zmin, zmax)
+    EOS(itp₁, itp₂, itp₃, itp₄, xmin, xmax, zmin, zmax)
 end
 
 "Pressure [MeV fm^-3]."
@@ -177,6 +182,14 @@ function Γ₁(eos, logT, lognb, Yₑ)
 end
 
 Γ₁(eos, logT, lognb) = Γ₁(eos, logT, lognb, Yₑ(eos, logT, lognb))
+
+function logT(eos, logs, lognb)
+    prob = IntervalNonlinearProblem{false}(
+            (logT, (eos, logs, lognb)) -> log(s(eos, logT, lognb)) - logs,
+            (eos.xmin, eos.xmax - 1e-15), (eos, logs, lognb))
+    sol = solve(prob, ITP(); abstol=1e-15, reltol=1e-15)
+    sol.u
+end
 
 "Generate two-parameter equation-of-state table in β equilibrium."
 function generate_table(eos, n, m, Tmin, Tmax, nbmin, nbmax)
@@ -239,6 +252,71 @@ function generate_table(eos, n, m, Tmin, Tmax, nbmin, nbmax)
     table
 end
 
+"""
+Generate two-parameter equation-of-state table in β equilibrium with entropy
+per baryon as independent variable.
+"""
+function generate_table_entropy(eos, n, m, smin, smax, nbmin, nbmax)
+    Xmin = log(smin)
+    Xmax = log(smax)
+    δX = (Xmax - Xmin)/(n - 1)
+    Xs = Xmin:δX:Xmax
+
+    ymin = log(nbmin)
+    ymax = log(nbmax)
+    δy = (ymax - ymin)/(m - 1)
+    ys = ymin:δy:ymax
+
+    table = zeros(n*m, 15)
+    for i = 1:n, j = 1:m
+        X, y = Xs[i], ys[j]
+        x = logT(eos, X, y)
+        z = Yₑ(eos, x, y)   # β equilibrium on each row
+        a = p(eos, x, y, z)
+        b = exp(X)
+        c = ε(eos, x, y, z)
+
+        # s
+        table[m*(i - 1) + j, 1] = exp(X)
+        # nb / fm^-3
+        table[m*(i - 1) + j, 2] = exp(y)
+
+        # Yₑ
+        table[m*(i - 1) + j, 3] = z
+        # p / MeV fm^-3
+        table[m*(i - 1) + j, 4] = a
+        # T / MeV
+        table[m*(i - 1) + j, 5] = exp(x)
+        # ε / MeV fm^-3
+        table[m*(i - 1) + j, 6] = c
+
+        ∂logp_∂logT, ∂logp_∂lognb, ∂logp_∂Yₑ = gradient(eos.itp₁, x, y, z)
+        # ∂p_∂T / fm^-3
+        table[m*(i - 1) + j, 7] = a/exp(x)*∂logp_∂logT
+        # ∂p_∂nb / MeV
+        table[m*(i - 1) + j, 8] = a/exp(y)*∂logp_∂lognb
+        # ∂p_∂Yₑ / MeV fm^-3
+        table[m*(i - 1) + j, 9] = a*∂logp_∂Yₑ
+
+        ∂logs_∂logT, ∂logs_∂lognb, ∂logs_∂Yₑ = gradient(eos.itp₂, x, y, z)
+        # ∂s_∂T / MeV^-1
+        table[m*(i - 1) + j, 10] = b/exp(x)*∂logs_∂logT
+        # ∂s_∂nb / fm^3
+        table[m*(i - 1) + j, 11] = b/exp(y)*∂logs_∂lognb
+        # ∂s_∂Yₑ
+        table[m*(i - 1) + j, 12] = b*∂logs_∂Yₑ
+
+        ∂logε_∂logT, ∂logε_∂lognb, ∂logε_∂Yₑ = gradient(eos.itp₄, x, y, z)
+        # ∂ε_∂T / fm^-3
+        table[m*(i - 1) + j, 13] = c/exp(x)*∂logε_∂logT
+        # ∂ε_∂nb / MeV
+        table[m*(i - 1) + j, 14] = c/exp(y)*∂logε_∂lognb
+        # ∂ε_∂Yₑ / MeV fm^-3
+        table[m*(i - 1) + j, 15] = c*∂logε_∂Yₑ
+    end
+    table
+end
+
 function make_apr_table()
     apr = APR()
 
@@ -271,6 +349,25 @@ function make_dd2_table()
     table = generate_table(dd2, n, m, Tmin, Tmax, nbmin, nbmax)
 
     open(dirname(Base.active_project()) * "/data/eos/dd2.table", "w") do io
+        writedlm(io, table)
+    end
+
+    nothing
+end
+
+function make_apr_table_entropy()
+    apr = APR()
+
+    # range to enforce β equilibrium
+    n, m = 21, 220
+    smin = 0.1
+    smax = 5.0
+    nbmin = 1.2618275141636872e-7
+    nbmax = 2.5176768870016693
+
+    table = generate_table_entropy(apr, n, m, smin, smax, nbmin, nbmax)
+
+    open(dirname(Base.active_project()) * "/data/eos/apr_entropy.table", "w") do io
         writedlm(io, table)
     end
 
