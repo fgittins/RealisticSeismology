@@ -4,12 +4,12 @@ using DelimitedFiles
 function read_table(eos_table, n, m)
     table = readdlm(eos_table; dims=(n*m, 15), comments=true)::Matrix{Float64}
 
-    Ts = @view table[1:m:n*m, 1]                            # Temperature [MeV]
+    xs = @view table[1:m:n*m, 1]                            # Temperature [MeV] or entropy per baryon [dimensionless]
     nbs = @view table[1:1:m, 2]                             # Baryon-number density [fm^-3]
 
     Yₑs = transpose(@views reshape(table[:, 3], (m, n)))    # Electron fraction [dimensionless]
     ps = transpose(@views reshape(table[:, 4], (m, n)))     # Pressure [MeV fm^-3]
-    ss = transpose(@views reshape(table[:, 5], (m, n)))     # Entropy per baryon
+    ys = transpose(@views reshape(table[:, 5], (m, n)))     # Entropy per baryon [dimensionless] or temperature [MeV]
     εs = transpose(@views reshape(table[:, 6], (m, n)))     # Energy density [MeV fm^-3]
 
     ∂p_∂Ts = transpose(@views reshape(table[:, 7], (m, n)))
@@ -24,6 +24,6 @@ function read_table(eos_table, n, m)
     ∂ε_∂nbs = transpose(@views reshape(table[:, 14], (m, n)))
     ∂ε_∂Yₑs = transpose(@views reshape(table[:, 15], (m, n)))
 
-    (Ts, nbs), (Yₑs, ps, ss, εs, ∂p_∂Ts, ∂p_∂nbs, ∂p_∂Yₑs,
+    (xs, nbs), (Yₑs, ps, ys, εs, ∂p_∂Ts, ∂p_∂nbs, ∂p_∂Yₑs,
     ∂s_∂Ts, ∂s_∂nbs, ∂s_∂Yₑs, ∂ε_∂Ts, ∂ε_∂nbs, ∂ε_∂Yₑs)
 end
