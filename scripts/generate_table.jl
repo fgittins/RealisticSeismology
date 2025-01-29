@@ -166,6 +166,9 @@ function Yₑ(eos, logT, lognb)
             (Yₑ, (eos, logT, lognb)) -> μΔ(eos, logT, lognb, Yₑ),
             (eos.Yₑmin, eos.Yₑmax), (eos, logT, lognb))
     sol = solve(prob, ITP(); abstol=1e-15, reltol=1e-15)
+    if sol.u == eos.Yₑmin || sol.u == eos.Yₑmax
+        println("Solution did not converge at (logT, lognb) = ($logT, $lognb)")
+    end
     sol.u
 end
 
@@ -188,6 +191,9 @@ function logT(eos, logs, lognb)
             (logT, (eos, logs, lognb)) -> log(s(eos, logT, lognb)) - logs,
             (eos.xmin, eos.xmax - 1e-15), (eos, logs, lognb))
     sol = solve(prob, ITP(); abstol=1e-15, reltol=1e-15)
+    if sol.u == eos.xmin || sol.u == eos.xmax - 1e-15
+        println("Solution did not converge at (logs, lognb) = ($logs, $lognb)")
+    end
     sol.u
 end
 
@@ -277,7 +283,7 @@ function generate_table_entropy(eos, n, m, smin, smax, nbmin, nbmax)
         c = ε(eos, x, y, z)
 
         # s
-        table[m*(i - 1) + j, 1] = exp(X)
+        table[m*(i - 1) + j, 1] = b
         # nb / fm^-3
         table[m*(i - 1) + j, 2] = exp(y)
 
@@ -359,9 +365,9 @@ function make_apr_table_entropy()
     apr = APR()
 
     # range to enforce β equilibrium
-    n, m = 21, 220
-    smin = 0.1
-    smax = 5.0
+    n, m = 101, 220
+    smin = 0.23
+    smax = 3.4
     nbmin = 1.2618275141636872e-7
     nbmax = 2.5176768870016693
 

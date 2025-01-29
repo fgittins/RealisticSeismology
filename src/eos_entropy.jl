@@ -96,7 +96,7 @@ function EOS(s, model, n, m)
     itp₉ = scale(interpolate(∂logε_∂lognbs, BSpline(Linear())), xs, ys)
     itp₁₀ = scale(interpolate(∂logε_∂Yₑs, BSpline(Linear())), xs, ys)
 
-    itp₁₁ = scale(interpolate(log.(Ts), BSpline(Linear())), xs, ys)
+    itp₁₁ = scale(interpolate(log.(Ts), BSpline(Cubic())), xs, ys)
 
     p = nb = 0.0
 
@@ -106,7 +106,7 @@ end
 
 "APR equation of state at constant entropy per baryon."
 function APR(s)
-    n, m = 21, 220
+    n, m = 101, 220
     model = dirname(Base.active_project()) * "/data/eos/apr_entropy.table"
     EOS(s, model, n, m)    
 end
