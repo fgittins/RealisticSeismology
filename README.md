@@ -1,6 +1,6 @@
 # RealisticSeismology
 
-This project presents an implementation of realistic, finite-temperature nuclear-matter models in neutron-star seismology. It was developed to support [arXiv:2406.05177](https://arxiv.org/abs/2406.05177) and [Gittins _et al._ (Phys. Rev. D **111**, 023049, 2025)](https://doi.org/10.1103/PhysRevD.111.023049).
+This project presents an implementation of realistic, finite-temperature nuclear-matter models in neutron-star seismology. It was developed to support [Gittins and Andersson (Phys. Rev. D **111**, 083024, 2025)](https://doi.org/10.1103/PhysRevD.111.083024) and [Gittins _et al._ (Phys. Rev. D **111**, 023049, 2025)](https://doi.org/10.1103/PhysRevD.111.023049).
 
 ## Installation
 
@@ -47,10 +47,16 @@ julia> weave("mode_demo.jmd")
 If you found this project to be useful in academic work, please cite it using the following references:
 
 ```bibtex
-@unpublished{gittins2024neutronstar,
+@article{gittins2024neutronstar,
         title="{Neutron-star seismology with realistic, finite-temperature nuclear matter}", 
        author={{Gittins}, F. and {Andersson}, N.},
-         year={2024},
+      journal={Phys.\ Rev.\ D},
+         year={2025},
+        month=apr,
+       volume={111},
+        issue={8},
+        pages={083024},
+          doi={10.1103/PhysRevD.111.083024},
        eprint={2406.05177},
 archivePrefix={arXiv},
  primaryClass={gr-qc}
@@ -59,7 +65,7 @@ archivePrefix={arXiv},
 @article{gittins2025problematicsystematics,
         title="{Problematic systematics in neutron-star merger simulations}", 
        author={{Gittins}, F. and {Matur}, R. and {Andersson}, N. and {Hawke}, I.},
-      journal={Phys.~Rev.~D},
+      journal={Phys.\ Rev.\ D},
          year={2025},
         month=jan,
        volume={111},
