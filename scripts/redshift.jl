@@ -22,6 +22,18 @@ println("M = $(star.M*mass_geometric_to_Msol) Msol, R = $(star.R) km")
 k₂ = calculate_love_number(star)
 println("k₂ = $k₂")
 
+rs = @views star.sol.t[2:end]
+νs = @views star.sol[3, 2:end]
+
+Ts = Tᵣ./exp.(νs./2)
+
+fig1, ax1 = subplots()
+ax1.plot(log10.(1 .- rs./star.R), log10.(Ts))
+ax1.set_xlabel(L"\log_{10}(1 - r / R)")
+ax1.set_ylabel(L"$\log_{10}[T(r)$ / MeV$]$")
+fig1.tight_layout()
+display(fig1)
+
 l = 2
 ωguess = (0.075 + 2.9e-5*im)/star.M
 
@@ -37,39 +49,22 @@ W(r) = (r ≤ star.R/2
 rs = LinRange(1e-3, star.R, 200)
 ReWs = [real(W(r)) for r ∈ rs]
 
-fig1a, ax1a = subplots()
-ax1a.plot(rs, ReWs)
-ax1a.set_xlabel(L"$r$ / km")
-ax1a.set_ylabel(L"$\mathrm{Re}[W(r)]$ / km$^2$")
-fig1a.tight_layout()
-display(fig1a)
-
-fig1b, ax1b = subplots()
-ax1b.plot(log10.(1 .- rs./star.R), ReWs)
-ax1b.set_xlabel(L"\log_{10}(1 - r / R)")
-ax1b.set_ylabel(L"$\mathrm{Re}[W(r)]$ / km$^2$")
-fig1b.tight_layout()
-display(fig1b)
-
-ωrange = LinRange(0.01, 0.5, 981)./star.M
-f(ω) = Redshift.spectrum(star, l, ω)
-frange = f.(ωrange)
-
 fig2a, ax2a = subplots()
-ax2a.plot(ωrange.*star.M, log10.(abs.(frange)))
-ax2a.set_xlabel(L"\omega M")
-ax2a.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+ax2a.plot(rs, ReWs)
+ax2a.set_xlabel(L"$r$ / km")
+ax2a.set_ylabel(L"$\mathrm{Re}[W(r)]$ / km$^2$")
 fig2a.tight_layout()
 display(fig2a)
 
 fig2b, ax2b = subplots()
-ax2b.plot(ωrange./(2*π*time_geometric_to_CGS)./1e3, log10.(abs.(frange)))
-ax2b.set_xlabel(L"$\omega / (2 \pi)$ / kHz")
-ax2b.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+ax2b.plot(log10.(1 .- rs./star.R), ReWs)
+ax2b.set_xlabel(L"\log_{10}(1 - r / R)")
+ax2b.set_ylabel(L"$\mathrm{Re}[W(r)]$ / km$^2$")
 fig2b.tight_layout()
 display(fig2b)
 
-ωrange = LinRange(0.001, 0.025, 2401)./star.M
+ωrange = LinRange(0.01, 0.5, 981)./star.M
+f(ω) = Redshift.spectrum(star, l, ω)
 frange = f.(ωrange)
 
 fig3a, ax3a = subplots()
@@ -80,13 +75,13 @@ fig3a.tight_layout()
 display(fig3a)
 
 fig3b, ax3b = subplots()
-ax3b.plot(ωrange./(2*π*time_geometric_to_CGS), log10.(abs.(frange)))
-ax3b.set_xlabel(L"$\omega / (2 \pi)$ / Hz")
+ax3b.plot(ωrange./(2*π*time_geometric_to_CGS)./1e3, log10.(abs.(frange)))
+ax3b.set_xlabel(L"$\omega / (2 \pi)$ / kHz")
 ax3b.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
 fig3b.tight_layout()
 display(fig3b)
 
-ωrange = LinRange(0.0008, 0.008, 3601)./star.M
+ωrange = LinRange(0.001, 0.025, 2401)./star.M
 frange = f.(ωrange)
 
 fig4a, ax4a = subplots()
@@ -102,3 +97,20 @@ ax4b.set_xlabel(L"$\omega / (2 \pi)$ / Hz")
 ax4b.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
 fig4b.tight_layout()
 display(fig4b)
+
+ωrange = LinRange(0.0008, 0.008, 3601)./star.M
+frange = f.(ωrange)
+
+fig5a, ax5a = subplots()
+ax5a.plot(ωrange.*star.M, log10.(abs.(frange)))
+ax5a.set_xlabel(L"\omega M")
+ax5a.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+fig5a.tight_layout()
+display(fig5a)
+
+fig5b, ax5b = subplots()
+ax5b.plot(ωrange./(2*π*time_geometric_to_CGS), log10.(abs.(frange)))
+ax5b.set_xlabel(L"$\omega / (2 \pi)$ / Hz")
+ax5b.set_ylabel(L"\log_{10}(|\tilde{A}_\mathrm{in}|)")
+fig5b.tight_layout()
+display(fig5b)
