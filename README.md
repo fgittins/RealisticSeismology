@@ -6,7 +6,7 @@ This project presents an implementation of realistic, finite-temperature nuclear
 
 The software is developed using the Julia programming language. To use it:
 
-1. Install [Julia](https://julialang.org/downloads/)
+1. Install [Julia](https://julialang.org/downloads/) (**Note:** as specified in the `Manifest.toml`, this code has been validated with v1.10.5)
 
 2. Download this repository
 
@@ -14,21 +14,21 @@ The software is developed using the Julia programming language. To use it:
 
 4. Type `]` to enter Julia's package manager (Pkg.jl) REPL,
 
-```julia-repl
-(@v1.10) pkg>
-```
+    ```julia-repl
+    (@v1.10) pkg>
+    ```
 
 5. `activate` the project environment with
 
-```julia-repl
-(@v1.10) pkg> activate .
-```
+    ```julia-repl
+    (@v1.10) pkg> activate .
+    ```
 
 6. `instantiate` the project,
 
-```julia-repl
-(RealisticSeismology) pkg> instantiate
-```
+    ```julia-repl
+    (RealisticSeismology) pkg> instantiate
+    ```
 
 For more information on Julia packages and environments, see the [Pkg.jl documentation](https://pkgdocs.julialang.org/v1/).
 
