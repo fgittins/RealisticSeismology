@@ -79,7 +79,7 @@ function integrate_exterior(R, M, n, ω)
     solve(prob, Vern9(); reltol=1e-15, abstol=1e-15, save_everystep=false)
 end
 
-"Transformation from `[H₁, K]` to `[Z, dZdrstar]`."
+"Transformation from `[H₁, K]` to `[Z, dZ_drstar]`."
 function transformation(r, x, M, n)
     g = (n*(n + 1)*r^2 + 3*n*M*r + 6*M^2)/(r^2*(n*r + 3*M))
     h = (n*r^2 - 3*n*M*r - 3*M^2)/(r*(r - 2*M)*(n*r + 3*M))

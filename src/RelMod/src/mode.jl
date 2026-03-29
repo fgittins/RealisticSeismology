@@ -37,12 +37,12 @@ function integrate_all(background, l, ωguess)
     # exterior
     n = (l + 2)*(l - 1)/2
     sol = integrate_exterior(R, M, n, ωguess)
-    q, dqdρ = sol.u[end]
+    q, dq_dρ = sol.u[end]
     θ = -atan(imag(ωguess)/real(ωguess))
-    dqdr = exp(-im*θ)*dqdρ
-    Z, dZdrstar = transformation(R, SA[H₁, K], M, n)
+    dq_dr = exp(-im*θ)*dq_dρ
+    Z, dZ_drstar = transformation(R, SA[H₁, K], M, n)
 
-    q, dqdr, Z, dZdrstar
+    q, dq_dr, Z, dZ_drstar
 end
 
 "Define eigenvalue problem."
@@ -50,9 +50,9 @@ function eigenproblem(background, l, ωguess)
     R = background.R
     M = background.M
 
-    q, dqdr, Z, dZdrstar = integrate_all(background, l, ωguess)
+    q, dq_dr, Z, dZ_drstar = integrate_all(background, l, ωguess)
 
-    Ain(R, q, dqdr, Z, dZdrstar, M) / Aout(R, q, dqdr, Z, dZdrstar, M)
+    Ain(R, q, dq_dr, Z, dZ_drstar, M) / Aout(R, q, dq_dr, Z, dZ_drstar, M)
 end
 
 "Define oscillation spectrum."
@@ -60,9 +60,9 @@ function spectrum(background, l, ωguess)
     R = background.R
     M = background.M
 
-    q, dqdr, Z, dZdrstar = integrate_all(background, l, ωguess)
+    q, dq_dr, Z, dZ_drstar = integrate_all(background, l, ωguess)
 
-    Ain(R, q, dqdr, Z, dZdrstar, M)
+    Ain(R, q, dq_dr, Z, dZ_drstar, M)
 end
 
 "Muller's method."

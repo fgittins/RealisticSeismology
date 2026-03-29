@@ -1226,7 +1226,7 @@ version = "1.2.2"
 deps = ["DiffEqBase", "Optim", "OrdinaryDiffEq", "Roots", "StaticArrays"]
 path = "src/RelMod"
 uuid = "fea32bdf-4b81-4c14-9f42-fb6edea45a8b"
-version = "0.1.1"
+version = "0.1.2"
 
 [[deps.RelocatableFolders]]
 deps = ["SHA", "Scratch"]
