@@ -17,9 +17,7 @@ Assumes geometric units, where G = c = 1.
 
 abstract type Barotrope end
 
-"""
-Adiabatic index [dimensionless] as function of pressure [km^-2].
-"""
+"Adiabatic index [dimensionless] as function of pressure [km^-2]."
 Γ₁(eos::Barotrope, p) = Γ(eos, p)
 
 """
@@ -37,7 +35,7 @@ end
 "Energy density [km^-2] as function of pressure [km^-2]."
 ε(eos::Polytrope, p) = (p / eos.K)^(eos.n/(eos.n + 1)) + eos.n*p
 
-"""Background index [dimensionless] as function of pressure [km^-2]."""
+"Background index [dimensionless] as function of pressure [km^-2]."
 Γ(eos::Polytrope, p) = 1 + 1/eos.n
 
 """
